@@ -1,0 +1,563 @@
+#Region Functions
+    Function LocalPolicies {
+		$Title = "Local Policies"
+		$Message = "Does the Local Policies need to be configured?"
+		$Options = "&Yes", "&No"
+		$DefaultChoice = 0
+		$Result = $Host.UI.PromptForChoice($Title, $Message, $Options, $DefaultChoice)
+		switch ($Result) {
+			"0" {
+				Write-Host "Setting Local Policies"
+				if (!(Test-Path -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\)) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\" -Name WindowsUpdate | Out-Null 
+				}
+				if (!(Test-Path -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU)) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\" -Name AU | Out-Null 
+				}
+				#Configure automatic updates
+				New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name NoAutoUpdate -Value 0 -Force  | Out-Null
+				#Turn on recommended updates via Automatic Updates              
+				New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name IncludeRecommendedUpdates -Value 1 -Force | Out-Null
+				#Allow Automatic Updates immediate installation
+				New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name AutoInstallMinorUpdates -Value 1 -Force | Out-Null
+				#Configure automatic updates
+				New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name AUOptions -Value 3 -Force | Out-Null
+				#Automatic Updates detection frequency
+				New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name DetectionFrequencyEnabled -Value 3 -Force | Out-Null
+				#NoAutoRebootWithLoggedOnUsers
+				New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name NoAutoRebootWithLoggedOnUsers -Value 1 -Force | Out-Null
+				#Wsus Server
+				New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name UseWUServer -Value 1 -Force | Out-Null
+				New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\ -Name WUServer -Value "http://wsus" -Force | Out-Null
+				Write-Host "Setting Local Policies Completed" 
+			}
+			"1" { Write-Host "Local Policies Skipped" 
+			}
+		}
+	}
+Function RemoveBloatware {
+	$Title = "Remove Bloatware"
+$Message = "To Remove Bloatware enter the required letter"
+$Options = "&Remove Bloatware", "&Skip"
+$DefaultChoice = 0
+$Result = $Host.UI.PromptForChoice($Title, $Message, $Options, $DefaultChoice)
+switch ($Result) {
+	"0" {
+		#Removes AppxPackages
+		$Apps = @(
+			"1527c705-839a-4832-9118-54d4Bd6a0c89"
+			"c5e2524a-ea46-4f67-841f-6a9465d9d515"
+			"E2A4F912-2574-4A75-9BB0-0D023378592B"
+			"F46D4000-FD22-4DB4-AC8E-4E1DDDE828FE"
+			"InputApp"
+			"Microsoft.AAD.BrokerPlugin"
+			"Microsoft.AccountsControl"
+			"Microsoft.AsyncTextService"
+			"Microsoft.BioEnrollment"
+			"Microsoft.CredDialogHost"
+			"Microsoft.ECApp"
+			"Microsoft.PPIProjection"
+			"Microsoft.Win32WebViewHost"
+			"Microsoft.Windows.Apprep.ChxApp"
+			"Microsoft.Windows.AssignedAccessLockApp"
+			"Microsoft.Windows.CallingShellApp"
+			"Microsoft.Windows.CapturePicker"
+			"Microsoft.Windows.CloudExperienceHost"
+			"Microsoft.Windows.ContentDeliveryManager"
+			"Microsoft.Windows.NarratorQuickStart"
+			"Microsoft.Windows.OOBENetworkCaptivePortal"
+			"Microsoft.Windows.OOBENetworkConnectionFlow"
+			"Microsoft.Windows.ParentalControls"
+			"Microsoft.Windows.PeopleExperienceHost"
+			"Microsoft.Windows.PinningConfirmationDialog"
+			"Microsoft.Windows.SecHealthUI"
+			"Microsoft.Windows.SecureAssessmentBrowser"
+			"Microsoft.Windows.XGpuEjectDialog"
+			"Microsoft.XboxGameCallableUI"
+			"Windows.CBSPreview"
+			"windows.immersivecontrolpanel"
+			"Windows.PrintDialog"
+			"Microsoft.Services.Store.Engagement"
+			"Microsoft.Advertising.Xaml"
+			"Microsoft.BingWeather"
+			"Microsoft.GetHelp"
+			"Microsoft.Getstarted"
+			"Microsoft.HEIFImageExtension"
+			"Microsoft.HEVCVideoExtension"
+			"Microsoft.Messaging"
+			"Microsoft.Microsoft3DViewer"
+			"Microsoft.MicrosoftOfficeHub"
+			"Microsoft.MicrosoftSolitaireCollection"
+			"Microsoft.MicrosoftStickyNotes"
+			"Microsoft.MixedReality.Portal"
+			"Microsoft.MPEG2VideoExtension"
+			"Microsoft.MSPaint"
+			"Microsoft.Office.OneNote"
+			"Microsoft.OneConnect"
+			"Microsoft.People"
+			"Microsoft.Print3D"
+			"Microsoft.SkypeApp"
+			"Microsoft.StorePurchaseApp"
+			"Microsoft.VP9VideoExtensions"
+			"Microsoft.Wallet"
+			"Microsoft.WebMediaExtensions"
+			"Microsoft.WebpImageExtension"
+			"Microsoft.WindowsAlarms"
+			"Microsoft.WindowsCalculator"
+			"Microsoft.WindowsCamera"
+			"microsoft.windowscommunicationsapps"
+			"Microsoft.WindowsFeedbackHub"
+			"Microsoft.WindowsMaps"
+			"Microsoft.WindowsSoundRecorder"
+			"Microsoft.WindowsStore"
+			"Microsoft.Xbox.TCUI"
+			"Microsoft.XboxApp"
+			"Microsoft.XboxGameOverlay"
+			"Microsoft.XboxGamingOverlay"
+			"Microsoft.XboxIdentityProvider"
+			"Microsoft.XboxSpeechToTextOverlay"
+			"Microsoft.YourPhone"
+			"Microsoft.ZuneMusic"
+			"Microsoft.ZuneVideo"
+			"PanasonicCorporation.PanasonicPCManualSelector"
+			"PanasonicCorporation.PanasonicPCRecoveryDiscCreati"
+			"PanasonicCorporation.PanasonicPCAsetTag"
+			"PanasonicCorporation.PanasonicPCSupportFileCopy"
+			"Microsoft.Windows.Cortana"
+			"king.com.FarmHeroesSaga"
+			"king.com.CandyCrushFriends"
+			"SpotifyAB.SpotifyMusic"
+		)
+
+		ForEach ($App in $Apps) {  
+			Get-AppxPackage -AllUsers | Where-Object { $_.Name -Match $App } | Remove-AppxPackage -ErrorAction SilentlyContinue
+			Get-AppXProvisionedPackage -Online | Where-Object DisplayName -EQ $app | Remove-AppxProvisionedPackage -Online
+		}
+
+		#Deleting keys that are bloat.   
+		$Keys = @(
+			#Remove Background Tasks
+			"HKCR:\Extensions\ContractId\Windows.BackgroundTasks\PackageId\46928bounde.EclipseManager_2.2.4.51_neutral__a5h4egax66k6y"
+			"HKCR:\Extensions\ContractId\Windows.BackgroundTasks\PackageId\ActiproSoftwareLLC.562882FEEB491_2.6.18.18_neutral__24pqs290vpjk0"
+			"HKCR:\Extensions\ContractId\Windows.BackgroundTasks\PackageId\Microsoft.MicrosoftOfficeHub_17.7909.7600.0_x64__8wekyb3d8bbwe"
+			"HKCR:\Extensions\ContractId\Windows.BackgroundTasks\PackageId\Microsoft.PPIProjection_10.0.15063.0_neutral_neutral_cw5n1h2txyewy"
+			"HKCR:\Extensions\ContractId\Windows.BackgroundTasks\PackageId\Microsoft.XboxGameCallableUI_1000.15063.0.0_neutral_neutral_cw5n1h2txyewy"
+			"HKCR:\Extensions\ContractId\Windows.BackgroundTasks\PackageId\Microsoft.XboxGameCallableUI_1000.16299.15.0_neutral_neutral_cw5n1h2txyewy"
+			#Windows File
+			"HKCR:\Extensions\ContractId\Windows.File\PackageId\ActiproSoftwareLLC.562882FEEB491_2.6.18.18_neutral__24pqs290vpjk0"
+			#Registry keys to delete if they aren't uninstalled by RemoveAppXPackage/RemoveAppXProvisionedPackage
+			"HKCR:\Extensions\ContractId\Windows.Launch\PackageId\46928bounde.EclipseManager_2.2.4.51_neutral__a5h4egax66k6y"
+			"HKCR:\Extensions\ContractId\Windows.Launch\PackageId\ActiproSoftwareLLC.562882FEEB491_2.6.18.18_neutral__24pqs290vpjk0"
+			"HKCR:\Extensions\ContractId\Windows.Launch\PackageId\Microsoft.PPIProjection_10.0.15063.0_neutral_neutral_cw5n1h2txyewy"
+			"HKCR:\Extensions\ContractId\Windows.Launch\PackageId\Microsoft.XboxGameCallableUI_1000.15063.0.0_neutral_neutral_cw5n1h2txyewy"
+			"HKCR:\Extensions\ContractId\Windows.Launch\PackageId\Microsoft.XboxGameCallableUI_1000.16299.15.0_neutral_neutral_cw5n1h2txyewy"
+			#Scheduled Tasks to delete
+			"HKCR:\Extensions\ContractId\Windows.PreInstalledConfigTask\PackageId\Microsoft.MicrosoftOfficeHub_17.7909.7600.0_x64__8wekyb3d8bbwe"
+			#Windows Protocol Keys
+			"HKCR:\Extensions\ContractId\Windows.Protocol\PackageId\ActiproSoftwareLLC.562882FEEB491_2.6.18.18_neutral__24pqs290vpjk0"
+			"HKCR:\Extensions\ContractId\Windows.Protocol\PackageId\Microsoft.PPIProjection_10.0.15063.0_neutral_neutral_cw5n1h2txyewy"
+			"HKCR:\Extensions\ContractId\Windows.Protocol\PackageId\Microsoft.XboxGameCallableUI_1000.15063.0.0_neutral_neutral_cw5n1h2txyewy"
+			"HKCR:\Extensions\ContractId\Windows.Protocol\PackageId\Microsoft.XboxGameCallableUI_1000.16299.15.0_neutral_neutral_cw5n1h2txyewy"  
+			#Windows Share Target
+			"HKCR:\Extensions\ContractId\Windows.ShareTarget\PackageId\ActiproSoftwareLLC.562882FEEB491_2.6.18.18_neutral__24pqs290vpjk0"
+		)
+		#This writes the output of each key it is removing and also removes the keys listed above.
+		ForEach ($Key in $Keys) {
+			Remove-Item $Key -Recurse -ErrorAction SilentlyContinue
+		} 
+	}
+	"1" { 
+		Write-Host "Bloatware removal Skipped" 
+	} 
+}
+}
+Function SetupComputer {
+	#Different Computer Manufacturers --- Incase installing on different typical computers. 
+$ProductionComputers = "Panasonic Corporation", "Hewlett-Packard" 
+$ComputerManufacturer = (Get-WmiObject -Class:Win32_ComputerSystem).Manufacturer
+if ($ComputerManufacturer -ne $ProductionComputers){
+	$Title = "Computer Manufacturer"
+	$Message = "Enter What Spillman you are testing for."
+	$Options = "&MDC", "&Desktop Spillman"
+	$DefaultChoice = 0
+	$Result = $Host.UI.PromptForChoice($Title, $Message, $Options, $DefaultChoice)
+	switch ($Result) {
+		"0" {
+			$ComputerManufacturer = "Panasonic Corporation"
+		}
+		"1" {
+			$ComputerManufacturer = "Hewlett-Packard"
+		}
+	}
+}
+	if (!($env:COMPUTERNAME -like "MS-*DN" -or $env:COMPUTERNAME -like "PCC*")) {
+		if ($ComputerManufacturer -eq "Hewlett-Packard") {
+			#Setups Static IP
+			$IP = Read-Host "Enter The Last Octet of the Designated IP address - Include all three digits."
+			$Rename = ("PCC" + $IP)
+			$MaskBits = 24 # This means subnet mask = 255.255.255.0
+			# Configure the third octect for $Gateway depending on location, M&S is .115.
+			$Gateway = "172.27.115.1"
+			$Dns = "172.22.6.39", "172.22.6.41"
+			# Configures the IP address and default gateway -Configure the third octect for $Gateway depending on location, M&S is .115.
+			New-NetIPAddress –IPAddress "172.27.115.$IP" -DefaultGateway $Gateway -PrefixLength $MaskBits -InterfaceIndex (Get-NetAdapter).InterfaceIndex
+			# Configures the DNS client server IP addresses
+			Set-DNSClientServerAddress –InterfaceIndex (Get-NetAdapter).InterfaceIndex –ServerAddresses $DNS
+		}
+		if ($ComputerManufacturer -eq "Panasonic Corporation") {
+			#Configures ComputerName
+			$User = Read-host "Enter the MDC User"
+			$Asset = Read-Host "Enter The Asset Tag"
+			$Rename = ("MS-" + $User + $Asset + "DN")
+		} 
+		#else {
+		#	$Rename = Read-Host "Enter the Designated Computer Name"
+		#}
+		Rename-Computer -NewName $Rename -Force
+		Write-Host "Adding computer to PCCDPS workgroup"
+		Add-Computer -WorkGroupName "PCCDPS" -ErrorAction SilentlyContinue 
+	}
+	#Users
+	if ($ComputerManufacturer -eq "Hewlett-Packard") {
+		#Creates Spillman User
+		if (!(Get-LocalUser | Where-Object { $_.Name -like "Spillman" })) {
+			New-LocalUser -Name "Spillman" -Password ([securestring]::new()) -Description "Spillman Account." -UserMayNotChangePassword
+			Add-LocalGroupMember -Group "Users" -Member "Spillman" 
+		}
+	}
+	if ($ComputerManufacturer -eq "Panasonic Corporation") {
+		#Configures MDC User
+		if (!(Get-LocalUser | Where-Object { $_.Name -like "$User" })) {
+			if ($null -eq $User){
+			$User = Read-host "Enter the MDC User"
+			}
+			do{
+				$passgud = $false
+				$MPassword = Read-host "Enter MDC User Password"
+				$VerifyPassword = Read-host "Enter MDC User Password again"
+				if($MPassword -eq $VerifyPassword){
+				$passgud = $true
+				} else {Write-host "The passwords you entered dont match, Try again." -ForegroundColor Red}
+			}
+				Until($passgud)
+			$Password = ConvertTo-SecureString $MPassword -AsPlainText –Force
+			New-LocalUser -Name $User -Password $Password -AccountNeverExpires -FullName $User -PasswordNeverExpires -UserMayNotChangePassword
+			Add-LocalGroupMember -Group "Users" -Member $User
+		}
+	}
+}
+Function RemovePrograms{
+	#Remove Office
+	if (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -eq 'Microsoft Office 365 - en-us' }) {
+		Write-Host "Found Office 365 installation" -BackgroundColor Black -ForegroundColor White
+		$uninstall32 = Get-ChildItem "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall" | ForEach-Object { Get-ItemProperty $_.PSPath } | Where-Object { $_ -match "Microsoft Office 365" } | Select-Object UninstallString
+		$uninstall64 = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" | ForEach-Object { Get-ItemProperty $_.PSPath } | Where-Object { $_ -match "Microsoft Office 365" } | Select-Object UninstallString
+		if ($uninstall64) {
+			$uninstall64 = $uninstall64.UninstallString -Replace "msiexec.exe", "" -Replace "/I", "" -Replace "/X", ""
+			$uninstall64 = $uninstall64.Trim()
+			Write-Host "Uninstalling..."
+			Start-Process -FilePath cmd.exe -ArgumentList '/c', $uninstall64 -Wait 
+		}
+		if ($uninstall32) {
+			$uninstall32 = $uninstall32.UninstallString -Replace "msiexec.exe", "" -Replace "/I", "" -Replace "/X", ""
+			$uninstall32 = $uninstall32.Trim()
+			Write-Host "Uninstalling..."
+			start-process -FilePath cmd.exe -ArgumentList '/c', $uninstall32 -Wait 
+		}
+	}
+	#Remove OneDrive
+	if (test-path "C:\Users\$env:username\AppData\Local\Microsoft\OneDrive\OneDrive.exe"){
+		Write-Host "Found OneDrive installation" -BackgroundColor Black -ForegroundColor White
+			[string]$UninstallString = Get-Package -Name "Microsoft OneDrive" -ErrorAction Ignore | ForEach-Object -Process { $_.Meta.Attributes["UninstallString"] }
+			if ($UninstallString) {
+				Write-Verbose -Message "Uninstalling OneDrive" -Verbose
+				Stop-Process -Name OneDrive -Force -ErrorAction Ignore
+				Stop-Process -Name FileCoAuth -Force -ErrorAction Ignore
+
+				# Save all opened folders in order to restore them after File Explorer restarting
+				Clear-Variable -Name OpenedFolders -Force -ErrorAction Ignore
+				$OpenedFolders = { (New-Object -ComObject Shell.Application).Windows() | ForEach-Object -Process { $_.Document.Folder.Self.Path } }.Invoke()
+
+				# Getting link to the OneDriveSetup.exe and its' argument(s)
+				[string[]]$OneDriveSetup = ($UninstallString -Replace ("\s*/", ",/")).Split(",").Trim()
+				if ($OneDriveSetup.Count -eq 2){ 
+					Start-Process -FilePath $OneDriveSetup[0] -ArgumentList $OneDriveSetup[1..1] -Wait 
+				} else { 
+					Start-Process -FilePath $OneDriveSetup[0] -ArgumentList $OneDriveSetup[1..2] -Wait 
+				}
+				Stop-Process -Name explorer -Force
+
+				# Restoring closed folders
+				foreach ($OpenedFolder in $OpenedFolders) {
+					if (Test-Path -Path $OpenedFolder){ 
+						Invoke-Item -Path $OpenedFolder 
+					}
+				}
+				# Getting the OneDrive user folder path
+				Write-Host "Removing One Drive"
+				$OneDriveUserFolder = Get-ItemPropertyValue -Path HKCU:\Environment -Name OneDrive
+				Remove-Item -Path $OneDriveUserFolder -Recurse -Force -ErrorAction SilentlyContinue
+				Remove-Item -Path HKCU:\Environment\OneDrive -Force -ErrorAction Ignore
+				Remove-Item -Path HKCU:\Environment\OneDriveConsumer -Force -ErrorAction Ignore
+				Remove-Item -Path HKCU:\Software\Microsoft\OneDrive -Recurse -Force -ErrorAction Ignore
+				Remove-Item -Path HKLM:\SOFTWARE\WOW6432Node\Microsoft\OneDrive -Recurse -Force -ErrorAction Ignore
+				Remove-Item -Path "$env:ProgramData\Microsoft OneDrive" -Recurse -Force -ErrorAction Ignore
+				Remove-Item -Path $env:SystemDrive\OneDriveTemp -Recurse -Force -ErrorAction Ignore
+				Unregister-ScheduledTask -TaskName *OneDrive* -Confirm:$false
+
+				# Getting the OneDrive folder path
+				$OneDriveFolder = Split-Path -Path (Split-Path -Path $OneDriveSetup[0] -Parent)
+				# Waiting for the FileSyncShell64.dll to be unloaded, using System.IO.File class
+				$FileSyncShell64dllFolder = Get-ChildItem -Path "$OneDriveFolder\*\amd64\FileSyncShell64.dll" -Force
+				foreach ($FileSyncShell64dll in $FileSyncShell64dllFolder) {
+					do	{
+						try	{	
+							$FileStream = [System.IO.File]::Open($FileSyncShell64dll.FullName, "Open", "Write")
+							$FileStream.Close()
+							$FileStream.Dispose()
+							$Locked = $false 
+						}
+						catch [System.UnauthorizedAccessException]{	
+							$Locked = $true	
+						}
+						catch [Exception] {
+							Start-Sleep -Milliseconds 500
+							Write-Verbose -Message "Waiting for the $FileSyncShell64dll to be unlocked" -Verbose 
+						}
+					}	while ($Locked)	    
+				}
+				Remove-Item -Path $OneDriveFolder -Recurse -Force -ErrorAction Ignore
+				Remove-Item -Path $env:LOCALAPPDATA\OneDrive -Recurse -Force -ErrorAction Ignore
+				Remove-Item -Path $env:LOCALAPPDATA\Microsoft\OneDrive -Recurse -Force -ErrorAction Ignore
+				Remove-Item -Path "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\OneDrive.lnk" -Force -ErrorAction Ignore
+			}
+		}
+}
+Function EdgePrevention {
+	$Appa = "HKCU:\Software\Classes\AppX4hxtad77fbk3jkkeerkrm0ze94wjf3s9"
+	$Appb = "HKCU:\Software\Classes\AppXd4nrz8ff68srnhf9t5a8sbjyar1cr723"
+	$NoS = "NoStaticDefaultVerb"
+	$NoO = "NoOpenWith"
+
+$Title = "Edge Prevention"
+$Message = "To stop Edge from taking over PDF's enter the required letter"
+$Options = "&Edge Preventions", "&Skip"
+$DefaultChoice = 0
+$Result = $Host.UI.PromptForChoice($Title, $Message, $Options, $DefaultChoice)
+switch ($Result) {
+	"0" {	New-ItemProperty -Path "$Appa" -Name "$NoS" | Out-Null
+			New-ItemProperty -Path "$Appa" -Name "$NoO" | Out-Null
+			New-ItemProperty -Path "$Appb" -Name "$NoS" | Out-Null
+			New-ItemProperty -Path "$Appb" -Name "$NoO" | Out-Null
+	}
+	"1" { 
+			Write-Host "Edge Prevention Skipped" 
+	}
+} 
+}
+Function SoftwareInstall {
+	$SLocation = "$env:userprofile\desktop\Spillman"
+$MLocation = "C:\ProgramData\ESRI\Maps"
+$Spillman = "$SLocation\Spillman.exe"
+$NetMotion = "$SLocation\Mobility.msi"
+$Office = "$SLocation\Office 2016 x32\setup.exe"
+$AntiV = "$SLocation\SEP.exe"
+Write-Host "Copying files, This may take some time."
+If (!(Test-Path "$MLocation")) { 
+	New-item -ItemType "Directory" -Path "$MLocation" 
+}
+if (!(Test-Path -Path $SLocation)) { 
+	New-item -ItemType "Directory" -Path "$SLocation" 
+}
+#Checks if installers are already on the desktop, if not it copies them
+#Office --- Tests if its not installed it will copy then install it.
+if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -eq 'Microsoft Office Shared 64-bit MUI (English) 2016' })){
+	if (Test-Path "$PSScriptRoot\Spillman\Office 2016 x32\"){
+		Copy-Item "$PSScriptRoot\Spillman\Office 2016 x32\" -Destination "$SLocation" -Recurse
+		Write-Host "Installing Office, Please wait this may take a while."
+		Start-Process -FilePath $Office -Wait 
+		Start-Process -FilePath "C:\Program Files (x86)\Microsoft Office\Office16\WINWORD.EXE" -Wait
+		} else {Write-Host "Could not find the Office Folder, Please make sure it was in the Spillman Folder on the USB."}
+	}
+#Spillman --- Tests if its not installed it will copy then install it.
+if (!(Test-Path "C:\Program Files (x86)\Spillman\Launcher.exe")){
+	$Spillmantest = Get-ChildItem "$PSScriptRoot\Spillman\*" | Where-Object { $_.Name -like "Spillman*.exe" }
+	if ($null -ne $SpillmanTest){
+		Copy-Item $Spillmantest -Destination "$SLocation"
+		Get-childitem $SLocation | Where-Object { $_.Name -like "Spillman*" } | Rename-Item -NewName Spillman.exe
+		Write-Host "Installing Spillman, Please wait this may take a while."
+		Start-Process -wait -FilePath $Spillman -ArgumentList "/S /v/qn" -PassThru 
+	} else {Write-Host "Could not find the Spillman installer, Please make sure it was in the Spillman Folder on the USB."}
+}
+#SEP AntiVirus --- Tests if its not installed it will copy then install it.
+if (!(Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -eq 'Symantec Endpoint Protection' })){
+	$AntiVtest = Get-ChildItem "$PSScriptRoot\Spillman\*" | Where-Object { $_.Name -like "SEP*.exe" } 
+	if ($null -ne $AntiVtest){
+		Copy-Item $AntiVtest -Destination "$SLocation"
+		Get-childitem $SLocation | Where-Object { $_.Name -like "SEP*" } | Rename-Item -NewName SEP.exe -ErrorAction SilentlyContinue
+		Start-Process $AntiV -Wait 
+		} else {Write-Host "Could not find the Antivirus installer, Please make sure it was in the Spillman Folder on the USB."}
+}
+<#NetMotion --- Tests if its not installed it will copy then install it. - Commenting out during testing
+if ($env:COMPUTERNAME -like "MS-*DN") {	
+	if (!(Test-Path $NetMotion)){
+		$NetMotiontest = Get-ChildItem "$PSScriptRoot\Spillman\*" | Where-Object { $_.Name -like "Mobility*.msi" } 
+		if ($null -ne $NetMotiontest){
+			Copy-Item $NetMotiontest -Destination "$SLocation"
+			Get-childitem $SLocation | Where-Object { $_.Name -like "Mobility_xg_Client*" } | Rename-Item -NewName Mobility.msi -ErrorAction SilentlyContinue
+			Write-Host "Installing NetMotion, Please wait this may take a while."
+			# Start-Process msiexec -wait -ArgumentList '/norestart /quiet /package C:\Users\Dpsadmin\Desktop\Spillman\Mobility.msi NM_ADDRESS_VALUE=159.233.184.5 REBOOT=ReallySuppress'
+			Start-Process msiexec -wait -ArgumentList "/norestart /quiet /package $NetMotion NM_ADDRESS_VALUE=159.233.184.5 REBOOT=ReallySuppress"
+			} else {Write-Host "Could not find the NetMotion installer, Please make sure it was in the Spillman Folder on the USB."}
+	} 
+}#>
+Copy-Item "$PSScriptRoot\Spillman\Layout.xml" -Destination "$SLocation"
+Copy-Item "$PSScriptRoot\AllMapFiles*\*" -Destination "$MLocation" -Recurse
+}
+Function StartLayout {
+	#Applies a Custom Default Start Layout
+$Title = "Change Start Layout"
+$Message = "Does the modified Start Layout need to be applied? This will only affect new users or users that haven't logged in yet."
+$Options = "&Yes", "&No"
+$DefaultChoice = 0
+$Result = $Host.UI.PromptForChoice($Title, $Message, $Options, $DefaultChoice)
+switch ($Result) {
+	"0" {
+		$layout = "$SLocation\Layout.xml"
+		Copy-Item "$layout" -Destination "C:\Windows\Temp\Layout.xml" -Force
+		Import-StartLayout –LayoutPath C:\Windows\Temp\Layout.xml -MountPath $env:SystemDrive\
+	}
+	"1" { 
+		Write-Host "Change Layout Skipped" 
+	}
+}
+}
+Function Spillman {
+	#Launches Spillman to enter the Server information
+	$Title = "Software Setup"
+	$Message = "Does the Software need to be configured?"
+	$Options = "&Yes", "&No"
+	$DefaultChoice = 0
+	$Result = $Host.UI.PromptForChoice($Title, $Message, $Options, $DefaultChoice)
+	switch ($Result) {
+		"0" {
+			Start-Process "C:\Program Files (x86)\Spillman\Launcher.exe"
+			Write-Host "Spillman- Please Login with the following settings.
+				Username: (Yours)
+				Click Detail
+				Click Edit Server
+				Configuration Name:  Spillman
+				Server:  spillman.sheriff.pima.gov
+				Port:  4080 "
+			Read-Host "Press Enter if you are done"
+			if ($env:COMPUTERNAME -like "MS-*DN") { 
+				Write-Host "GPS- 
+					Run Panasonic GPS Viewer then select Scan to get COM port and Baud Rate - Test to find the fastest Baud Rate.
+					In Spillman disable then re-enable the GPS while changing the Baud Rate to the fastest from the tests.
+					Test GPS"
+				Read-Host "Press Enter if you are done" 
+			}
+		} 	
+		"1"	{ Write-Host "Software setup skipped" 
+		}	
+	}
+}
+Function TimeServer {
+		$Title = "Time Server/Locale"
+		$Message = "To Configure Time server and location enter the required letter, Only set this while connected to Spillman network."
+		$Options = "&Configure Computer", "&Skip"
+		$DefaultChoice = 0
+		$Result = $Host.UI.PromptForChoice($Title, $Message, $Options, $DefaultChoice)
+		switch ($Result) {
+			"0" {
+				$TimeZone = "US Mountain Standard Time"
+				$NTPServer = "eccwdc01.sheriff.pima.gov"
+				# Configure NTP and restart service
+				Set-TimeZone -Id $TimeZone -PassThru
+				Push-Location
+				Set-Location HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DateTime\Servers
+				Set-ItemProperty . 0 $NTPServer
+				Set-ItemProperty . "(Default)" "0"
+				Set-Location HKLM:\SYSTEM\CurrentControlSet\services\W32Time\Parameters
+				Set-ItemProperty . NtpServer $NTPServer
+				Pop-Location
+				Stop-Service w32time
+				Start-Service w32time 
+			}
+			"1" { Write-Host "Skipped" 
+			} 
+		  }
+	}
+Function UserPolicy {
+	#MDC Policies
+	If ($ComputerManufacturer -eq "Panasonic Corporation") {
+		Write-Host "Setting MDC ScreenSaver Policies."
+		if (!(Test-Path -Path "HKCU:\Software\Policies\Microsoft\Windows\Control Panel\")) {
+			New-Item -Path HKCU:\Software\Policies\Microsoft\Windows\ -Name 'Control Panel' | Out-Null 
+		 }
+		if (!(Test-Path -Path 'HKCU:\Software\Policies\Microsoft\Windows\Control Panel\Desktop')) {
+			New-Item -Path 'HKCU:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\' -Name 'Desktop'  | Out-Null 
+		}
+		New-ItemProperty -Path 'HKCU:\Software\Policies\Microsoft\Windows\Control Panel\Desktop' -Name ScreenSaveActive -Value 1 -Force | Out-Null
+		New-ItemProperty -Path 'HKCU:\Software\Policies\Microsoft\Windows\Control Panel\Desktop' -Name ScreenSaverIsSecure -Value 1 -Force | Out-Null
+		New-ItemProperty -Path 'HKCU:\Software\Policies\Microsoft\Windows\Control Panel\Desktop' -Name ScreenSaveTimeOut -Value 1740 -Force | Out-Null
+		New-ItemProperty -Path 'HKCU:\Software\Policies\Microsoft\Windows\Control Panel\Desktop' -Name SCRNSAVE.EXE -Value "%Systemroot%\System32\Mystify.scr" -Force | Out-Null
+		New-ItemProperty -Path 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System' -Name NoDispScrSavPage -Value 1 -Force | Out-Null
+		Write-Host "Setting Screen Saver Policies Completed"
+	}
+}
+#EndRegion Functions
+#Required
+New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
+New-PSDrive -Name HKCU -PSProvider Registry -Root HKEY_CURRENT_USER | Out-Null
+New-PSDrive -Name HKLM -PSProvider Registry -Root HKEY_LOCAL_MACHINE | Out-Null
+
+#Information
+Write-Host "Fresh Setup - Computer Name/WorkGroup, Local Policies, User Set-up, and Removing Bloatware "
+Write-Host "1st Restart - Copy Spillman Files, Installing Programs"
+Write-Host "2nd Restart - Configuring Programs"
+Write-Host "Other User - Run on non admin user account"
+
+$Title = "SpillMan Setup"
+$Message = "Please Select Which section of the setup you are at"
+$Options = "&Fresh Setup", "&1 Restarts", "&2 Restarts", "&Other User"
+$DefaultChoice = 0
+$Result = $Host.UI.PromptForChoice($Title, $Message, $Options, $DefaultChoice)
+switch ($Result) {
+0 {
+	RemoveBloatware
+	RemovePrograms
+	SetupComputer
+	LocalPolicies
+	UserPolicy
+	EdgePrevention
+}
+1 {
+	SoftwareInstall
+	StartLayout
+}
+2 {
+	Spillman
+	TimeServer
+}
+3 {
+	UserPolicy
+	EdgePrevention
+}
+}
+
+
+#Restart
+$Title = "Restart Computer"
+$Message = "Would you like to restart the computer"
+$Options = "&Restart Computer", "&Do NOT restart computer"
+$DefaultChoice = 0
+$Result = $Host.UI.PromptForChoice($Title, $Message, $Options, $DefaultChoice)
+switch ($Result) {
+	"0" { 
+		Restart-Computer 
+	}
+	"1" { 
+		Break 
+	}
+}  
