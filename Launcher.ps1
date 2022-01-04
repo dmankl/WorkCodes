@@ -8,5 +8,5 @@ $DefaultChoice = 0
 $Result = $Host.UI.PromptForChoice($Title, $Message, $Options, $DefaultChoice)
 switch ($Result) {
     0 { Start-Process $SCCM -Credential $creds }
-    1 { Start-Process “C:\Windows\System32\cmd.exe” -workingdirectory $PSHOME -Credential $creds -ArgumentList “/c dsa.msc” }
+    1 { Start-Process "C:\Windows\System32\cmd.exe" -workingdirectory $PSHOME -Credential $creds -ArgumentList "/c dsa.msc" }
 }
